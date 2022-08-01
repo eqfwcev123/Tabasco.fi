@@ -8,8 +8,28 @@ contract TabascoERC20 is ITabascoERC20 {
     mapping(address => uint256) private _balances;
     mapping(address => mapping(address => uint256)) private _allowances;
     uint256 private _totalSupply;
-    string private constant _name = "Tabasco Shots";
-    string private _symbol = "TSHOT";
+    string public constant _name = "Tabasco V1.0";
+    string public constant _symbol = "TSHOT";
+
+    // EIP712
+    bytes32 public DOMAIN_SEPARATOR;
+
+    constructor() {
+        uint256 chainId;
+        assembly {
+            chainId := chainId
+        }
+
+        DOMAIN_SEPARATOR = keccak256(
+            abi.encode(
+                keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'),
+                keccak256(bytes(_name)),
+                keccak256(bytes('1')),
+                chainId,
+                address(this)
+            )
+        );
+    }
     
     function name() external pure returns (string memory) {
         return _name;
