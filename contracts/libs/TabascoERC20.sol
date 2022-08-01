@@ -5,7 +5,9 @@ import "../interfaces/ITabascoERC20.sol";
 import "../utils/SafeMath.sol";
 
 contract TabascoERC20 is ITabascoERC20 {
-    mapping(address => uint256) private _balances;
+    using SafeMath for uint256;
+
+    mapping(address => uint256) private _balanceOf;
     mapping(address => mapping(address => uint256)) private _allowances;
     uint256 private _totalSupply;
     string public constant _name = "Tabasco V1.0";
@@ -35,7 +37,7 @@ contract TabascoERC20 is ITabascoERC20 {
         return _name;
     }
 
-    function symbol() external view returns (string memory){
+    function symbol() external pure returns (string memory){
         return _symbol;
     }
 
@@ -48,7 +50,7 @@ contract TabascoERC20 is ITabascoERC20 {
     }
 
     function balanceOf(address account) external view returns (uint256){
-        return _balances[account];
+        return _balanceOf[account];
     }
 
     function allowance(address owner, address spender) external view returns (uint256){
@@ -60,16 +62,39 @@ contract TabascoERC20 is ITabascoERC20 {
         return true;
     }
 
-    function _approve(address _owner, address _spender, uint256 _amount) internal virtual {
+    function _approve(address _owner, address _spender, uint256 _amount) private {
         require(_owner != address(0), "[TabascoERC20]: Approval from address(0)");
         require(_spender != address(0), "[TabascoERC20]: Approval from address(0)");
         _allowances[_owner][_spender] = _amount;
         emit Approval(_owner, _spender, _amount);
     }
 
-    function transfer(address recipient, uint256 amount) external returns (bool){}
-    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool){}
+    function transfer(address recipient, uint256 amount) external returns (bool){
+        require(msg.sender != address(0), "[TabascoERC20] Null address");
+        require(recipient != address(0), "[TabascoERC20] Null address");
+        _transfer(msg.sender, recipient, amount);
+        return true;
+    }
 
+    function _transfer(address from, address to, uint256 value) private returns (bool) {
+        _balanceOf[from] = _balanceOf[from].sub(value);
+        _balanceOf[to] = _balanceOf[to].add(value);
+        return true;
+    }
+    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool){
+        if(_allowances[sender][msg.sender] > type(uint256).min && _allowances[sender][msg.sender] >= amount){
+            _allowances[sender][msg.sender] = _allowances[sender][msg.sender].sub(amount);
+        }
+        _transfer(sender, recipient, amount);
+        return true;
+    }
+
+    function mint() external returns (bool) {}
     
+    function _mint() private {}
+
+    function burn() external returns (bool) {}
+
+    function _burn() private {}
 
 }
